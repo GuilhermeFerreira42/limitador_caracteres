@@ -1,5 +1,7 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, simpledialog, messagebox
+import json
+import os
 
 class LimitadorCaracteresApp:
     def __init__(self, root):
@@ -23,7 +25,6 @@ class LimitadorCaracteresApp:
         label_texto.pack(pady=5)
         frame_texto = ttk.Frame(self.root)
         frame_texto.pack(pady=5)
-
         scroll_texto = tk.Scrollbar(frame_texto)
         scroll_texto.pack(side=tk.RIGHT, fill=tk.Y)
         self.entry_texto = tk.Text(frame_texto, height=10, width=70, yscrollcommand=scroll_texto.set)
@@ -49,7 +50,6 @@ class LimitadorCaracteresApp:
         label_resultado.pack(pady=5)
         frame_resultado = ttk.Frame(self.root)
         frame_resultado.pack(pady=5)
-
         scroll_resultado = tk.Scrollbar(frame_resultado)
         scroll_resultado.pack(side=tk.RIGHT, fill=tk.Y)
         self.entry_resultado = tk.Text(frame_resultado, height=10, width=70, yscrollcommand=scroll_resultado.set)
@@ -69,11 +69,9 @@ class LimitadorCaracteresApp:
         try:
             limite_caracteres = int(self.entry_remover.get())
             texto = self.entry_texto.get("1.0", tk.END).strip()
-
             # Considera os textos "antes" e "depois", mantendo suas quebras de linha
             texto_antes = self.texto_antes.rstrip('\n')
             texto_depois = self.texto_depois.lstrip('\n')
-
             # Calcular quantos caracteres podem ser utilizados para o texto principal
             caracteres_antes = len(texto_antes.replace("\n", ""))
             caracteres_depois = len(texto_depois.replace("\n", ""))
@@ -81,7 +79,6 @@ class LimitadorCaracteresApp:
 
             # Variável para armazenar o resultado final
             resultado_final = ""
-
             if self.pular_espacos.get():
                 # Ignora espaços em excesso, mas mantém um espaço simples entre palavras
                 i = 0
@@ -106,7 +103,7 @@ class LimitadorCaracteresApp:
     def configurar_textos(self):
         janela_config = tk.Toplevel(self.root)
         janela_config.title("Configurar Textos")
-        janela_config.geometry("400x350")
+        janela_config.geometry("400x500")
 
         label_antes = ttk.Label(janela_config, text="Texto antes:")
         label_antes.pack(pady=5)
@@ -130,6 +127,67 @@ class LimitadorCaracteresApp:
 
         botao_salvar = ttk.Button(janela_config, text="Salvar", command=salvar_textos)
         botao_salvar.pack(pady=10)
+
+        # Botões para salvar e carregar presets
+        frame_presets = ttk.Frame(janela_config)
+        frame_presets.pack(pady=10)
+        ttk.Button(frame_presets, text="Salvar Preset", command=lambda: self.salvar_preset(entry_antes.get("1.0", tk.END), entry_depois.get("1.0", tk.END))).grid(row=0, column=0, padx=5)
+        ttk.Button(frame_presets, text="Carregar Preset", command=lambda: self.mostrar_presets(entry_antes, entry_depois)).grid(row=0, column=1, padx=5)
+
+    def salvar_preset(self, texto_antes, texto_depois):
+        preset_name = simpledialog.askstring("Salvar Preset", "Insira o nome do preset")
+        if preset_name:
+            preset_data = {
+                "texto_antes": texto_antes,
+                "texto_depois": texto_depois,
+                "pular_espacos": self.pular_espacos.get()
+            }
+            if not os.path.exists("presets"):
+                os.makedirs("presets")
+            with open(f"presets/{preset_name}.json", "w") as f:
+                json.dump(preset_data, f)
+            messagebox.showinfo("Preset Salvo", f"Preset '{preset_name}' salvo com sucesso!")
+
+    def mostrar_presets(self, entry_antes, entry_depois):
+        if not os.path.exists("presets"):
+            messagebox.showinfo("Sem Presets", "Nenhum preset encontrado.")
+            return
+
+        # Criar uma janela para mostrar a lista de presets
+        janela_presets = tk.Toplevel(self.root)
+        janela_presets.title("Carregar Preset")
+        janela_presets.geometry("300x400")
+
+        label_presets = ttk.Label(janela_presets, text="Selecione um preset:")
+        label_presets.pack(pady=5)
+
+        lista_presets = tk.Listbox(janela_presets)
+        lista_presets.pack(pady=5, fill=tk.BOTH, expand=True)
+
+        # Carregar os nomes dos presets na listbox
+        for filename in os.listdir("presets"):
+            if filename.endswith(".json"):
+                lista_presets.insert(tk.END, filename[:-5])
+
+        def carregar_preset_selecionado():
+            preset_name = lista_presets.get(tk.ACTIVE)
+            if preset_name:
+                preset_path = f"presets/{preset_name}.json"
+                if os.path.exists(preset_path):
+                    with open(preset_path, "r") as f:
+                        preset_data = json.load(f)
+                    entry_antes.delete("1.0", tk.END)
+                    entry_antes.insert("1.0", preset_data["texto_antes"])
+                    entry_depois.delete("1.0", tk.END)
+                    entry_depois.insert("1.0", preset_data["texto_depois"])
+                    self.pular_espacos.set(preset_data["pular_espacos"])
+                    messagebox.showinfo("Preset Carregado", f"Preset '{preset_name}' carregado com sucesso!")
+                    janela_presets.destroy()
+                else:
+                    messagebox.showerror("Erro", f"Preset '{preset_name}' não encontrado!")
+
+        botao_carregar = ttk.Button(janela_presets, text="Carregar", command=carregar_preset_selecionado)
+        botao_carregar.pack(pady=10)
 
     # Funções para copiar, colar, selecionar tudo e limpar
     def copiar(self, widget):
