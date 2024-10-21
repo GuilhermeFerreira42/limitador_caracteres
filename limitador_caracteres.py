@@ -31,6 +31,9 @@ class LimitadorCaracteresApp:
         self.entry_texto.pack(side=tk.LEFT, fill=tk.BOTH)
         scroll_texto.config(command=self.entry_texto.yview)
 
+        # Adiciona menu de contexto nas caixas de texto
+        self.add_context_menu(self.entry_texto)
+
         # Botões para o campo de entrada de texto
         frame_botoes_texto = ttk.Frame(self.root)
         frame_botoes_texto.pack(pady=5)
@@ -55,6 +58,9 @@ class LimitadorCaracteresApp:
         self.entry_resultado = tk.Text(frame_resultado, height=10, width=70, yscrollcommand=scroll_resultado.set)
         self.entry_resultado.pack(side=tk.LEFT, fill=tk.BOTH)
         scroll_resultado.config(command=self.entry_resultado.yview)
+
+        # Adiciona menu de contexto nas caixas de texto
+        self.add_context_menu(self.entry_resultado)
 
         # Botões para o campo de texto processado
         frame_botoes_resultado = ttk.Frame(self.root)
@@ -119,6 +125,10 @@ class LimitadorCaracteresApp:
         entry_depois.pack(pady=5)
         entry_depois.insert("1.0", self.texto_depois)
 
+        # Adiciona menu de contexto nas caixas de texto
+        self.add_context_menu(entry_antes)
+        self.add_context_menu(entry_depois)
+
         check_box = ttk.Checkbutton(janela_config, text="Pular espaços", variable=self.pular_espacos)
         check_box.pack(pady=10)
 
@@ -146,14 +156,6 @@ class LimitadorCaracteresApp:
         label_presets = ttk.Label(janela_presets, text="Selecione um preset ou insira um novo nome:")
         label_presets.pack(pady=5)
 
-        lista_presets = tk.Listbox(janela_presets)
-        lista_presets.pack(pady=5, fill=tk.BOTH, expand=True)
-
-        # Carregar os nomes dos presets na listbox
-        for filename in os.listdir("presets"):
-            if filename.endswith(".json"):
-                lista_presets.insert(tk.END, filename[:-5])
-
         entry_preset_name = ttk.Entry(janela_presets, width=30)
         entry_preset_name.pack(pady=5)
 
@@ -172,7 +174,6 @@ class LimitadorCaracteresApp:
                     os.makedirs("presets")
                 with open(f"presets/{preset_name}.json", "w") as f:
                     json.dump(preset_data, f)
-                messagebox.showinfo("Preset Salvo", f"Preset '{preset_name}' salvo com sucesso!")
                 janela_presets.destroy()
             else:
                 messagebox.showerror("Erro", "Por favor, selecione ou insira um nome para o preset.")
@@ -180,10 +181,8 @@ class LimitadorCaracteresApp:
         botao_salvar = ttk.Button(janela_presets, text="Salvar", command=salvar)
         botao_salvar.pack(pady=10)
 
-
     def mostrar_presets(self, entry_antes, entry_depois):
         if not os.path.exists("presets"):
-            messagebox.showinfo("Sem Presets", "Nenhum preset encontrado.")
             return
 
         # Criar uma janela para mostrar a lista de presets
@@ -216,17 +215,37 @@ class LimitadorCaracteresApp:
                     entry_depois.delete("1.0", tk.END)
                     entry_depois.insert("1.0", preset_data["texto_depois"])
                     self.pular_espacos.set(preset_data["pular_espacos"])
-                    messagebox.showinfo("Preset Carregado", f"Preset '{preset_name}' carregado com sucesso!")
                     janela_presets.destroy()
-                else:
-                    messagebox.showerror("Erro", f"Preset '{preset_name}' não encontrado!")
+
+        def deletar_preset():
+            preset_name = lista_presets.get(tk.ACTIVE)
+            if preset_name:
+                preset_path = f"presets/{preset_name}.json"
+                if os.path.exists(preset_path):
+                    os.remove(preset_path)
+                    lista_presets.delete(tk.ACTIVE)
+                    messagebox.showinfo("Preset Deletado", f"Preset '{preset_name}' deletado com sucesso!")
 
         botao_carregar = ttk.Button(janela_presets, text="Carregar", command=carregar_preset_selecionado)
         botao_carregar.pack(pady=10)
 
-        # Adicionar botão para deletar preset
-        botao_deletar = ttk.Button(janela_presets, text="Deletar", command=lambda: self.deletar_preset(lista_presets))
+        botao_deletar = ttk.Button(janela_presets, text="Deletar", command=deletar_preset)
         botao_deletar.pack(pady=10)
+
+    # Função para adicionar menu de contexto
+    def add_context_menu(self, widget):
+        menu = tk.Menu(widget, tearoff=0)
+        menu.add_command(label="Desfazer", command=lambda: widget.event_generate("<<Undo>>"))
+        menu.add_command(label="Refazer", command=lambda: widget.event_generate("<<Redo>>"))
+        menu.add_separator()
+        menu.add_command(label="Copiar", command=lambda: widget.event_generate("<<Copy>>"))
+        menu.add_command(label="Colar", command=lambda: widget.event_generate("<<Paste>>"))
+        menu.add_command(label="Recortar", command=lambda: widget.event_generate("<<Cut>>"))
+        menu.add_separator()
+        menu.add_command(label="Selecionar Tudo", command=lambda: widget.event_generate("<<SelectAll>>"))
+        menu.add_command(label="Limpar", command=lambda: widget.delete(1.0, tk.END))
+
+        widget.bind("<Button-3>", lambda event: menu.tk_popup(event.x_root, event.y_root))
 
     # Funções para copiar, colar, selecionar tudo e limpar
     def copiar(self, widget):
@@ -244,20 +263,8 @@ class LimitadorCaracteresApp:
     def limpar(self, widget):
         widget.delete("1.0", tk.END)
 
-    def deletar_preset(self, lista_presets):
-        preset_name = lista_presets.get(tk.ACTIVE)
-        if preset_name:
-            preset_path = f"presets/{preset_name}.json"
-            if os.path.exists(preset_path):
-                os.remove(preset_path)
-                lista_presets.delete(tk.ACTIVE)
-                messagebox.showinfo("Preset Deletado", f"Preset '{preset_name}' deletado com sucesso!")
-            else:
-                messagebox.showerror("Erro", f"Preset '{preset_name}' não encontrado!")
-
 # Inicializando a aplicação
 if __name__ == "__main__":
     root = tk.Tk()
     app = LimitadorCaracteresApp(root)
     root.mainloop()
-
