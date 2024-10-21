@@ -147,9 +147,12 @@ class LimitadorCaracteresApp:
         ttk.Button(frame_presets, text="Carregar Preset", command=lambda: self.mostrar_presets(entry_antes, entry_depois)).grid(row=0, column=1, padx=5)
 
     def salvar_preset(self, texto_antes, texto_depois):
+        if not os.path.exists("presets"):
+            os.makedirs("presets")
+
         janela_presets = tk.Toplevel(self.root)
         janela_presets.title("Salvar Preset")
-        janela_presets.geometry("300x400")
+        janela_presets.geometry("300x300")
         janela_presets.transient(self.root)
         janela_presets.grab_set()
 
@@ -166,6 +169,7 @@ class LimitadorCaracteresApp:
 
         entry_preset_name = ttk.Entry(janela_presets, width=30)
         entry_preset_name.pack(pady=5)
+
 
         def salvar():
             preset_name = entry_preset_name.get().strip()
@@ -196,7 +200,7 @@ class LimitadorCaracteresApp:
         # Criar uma janela para mostrar a lista de presets
         janela_presets = tk.Toplevel(self.root)
         janela_presets.title("Carregar Preset")
-        janela_presets.geometry("300x400")
+        janela_presets.geometry("300x300")
         janela_presets.transient(self.root)
         janela_presets.grab_set()
 
