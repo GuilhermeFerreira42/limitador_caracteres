@@ -156,6 +156,14 @@ class LimitadorCaracteresApp:
         label_presets = ttk.Label(janela_presets, text="Selecione um preset ou insira um novo nome:")
         label_presets.pack(pady=5)
 
+        lista_presets = tk.Listbox(janela_presets)
+        lista_presets.pack(pady=5, fill=tk.BOTH, expand=True)
+
+        # Carregar os nomes dos presets na listbox
+        for filename in os.listdir("presets"):
+            if filename.endswith(".json"):
+                lista_presets.insert(tk.END, filename[:-5])
+
         entry_preset_name = ttk.Entry(janela_presets, width=30)
         entry_preset_name.pack(pady=5)
 
