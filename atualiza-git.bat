@@ -60,40 +60,40 @@ goto menu
 
 :pull
 echo Diretorio atual: %cd%
-echo Fazendo pull do repositorio remoto...
-git pull origin main
+echo Fazendo pull do repositorio...
+git pull
 pause
 goto menu
 
 :log
 echo Diretorio atual: %cd%
-echo Mostrando log de commits...
+echo Exibindo o historico de commits...
 git log
 pause
 goto menu
 
 :comandos
+cls
 echo =====================================
-echo COMANDOS BASICOS DO GIT
+echo     COMANDOS BASICOS DO GIT
 echo =====================================
 echo git init: Inicializa um novo repositorio Git
-echo git clone <URL>: Clona um repositorio remoto
 echo git status: Mostra o estado do repositorio
-echo git add <file>: Adiciona arquivos ao staging
 echo git commit -m "mensagem": Faz um commit
 echo git push: Envia commits para o remoto
 echo git pull: Baixa atualizacoes e mescla
 echo git fetch: Baixa atualizacoes sem mesclar
 echo git merge: Mescla uma branch
-echo git checkout <branch>: Alterna branches
 echo git branch: Lista as branches locais
-echo git branch <nome>: Cria uma nova branch
-echo git branch -d <nome>: Deleta uma branch
 echo git reset: Desfaz alteracoes
 echo git log: Exibe o historico de commits
 echo =====================================
-pause
-goto menu
+echo 1. Voltar ao menu principal
+echo =====================================
+set /p voltar="Escolha uma opcao: "
+
+if %voltar%==1 goto menu
+goto comandos
 
 :fim
 echo Saindo...
