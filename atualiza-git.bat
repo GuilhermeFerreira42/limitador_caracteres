@@ -15,7 +15,7 @@ echo 3. Fazer commit
 echo 4. Fazer push para o GitHub
 echo 5. Fazer pull do repositorio
 echo 6. Mostrar log de commits
-echo 7. Mostrar comandos basicos do Git
+echo 7. Outras opcoes
 echo 8. Sair
 echo =====================================
 set /p escolha="Escolha uma opcao: "
@@ -26,7 +26,7 @@ if %escolha%==3 goto commit
 if %escolha%==4 goto push
 if %escolha%==5 goto pull
 if %escolha%==6 goto log
-if %escolha%==7 goto comandos
+if %escolha%==7 goto outras_opcoes
 if %escolha%==8 goto fim
 goto menu
 
@@ -60,8 +60,8 @@ goto menu
 
 :pull
 echo Diretorio atual: %cd%
-echo Fazendo pull do repositorio remoto...
-git pull origin main
+echo Fazendo pull do repositorio...
+git pull
 pause
 goto menu
 
@@ -72,28 +72,72 @@ git log
 pause
 goto menu
 
-:comandos
+:outras_opcoes
+cls
+echo Outras opcoes
 echo =====================================
-echo COMANDOS BASICOS DO GIT
+echo 1. Restaurar arquivos deletados
+echo 2. Sincronizar com repositorio
+echo 3. Fazer fetch do repositorio
+echo 4. Fazer merge de branches
+echo 5. Inicializar um novo repositorio (git init)
+echo 6. Desfazer alteracoes (git reset)
+echo 7. Listar branches (git branch)
+echo 8. Voltar ao menu principal
 echo =====================================
-echo git init: Inicializa um novo repositorio Git
-echo git clone <URL>: Clona um repositorio remoto
-echo git status: Mostra o estado do repositorio
-echo git add <file>: Adiciona arquivos ao staging
-echo git commit -m "mensagem": Faz um commit
-echo git push: Envia commits para o remoto
-echo git pull: Baixa atualizacoes e mescla
-echo git fetch: Baixa atualizacoes sem mesclar
-echo git merge: Mescla uma branch
-echo git checkout <branch>: Alterna branches
-echo git branch: Lista as branches locais
-echo git branch <nome>: Cria uma nova branch
-echo git branch -d <nome>: Deleta uma branch
-echo git reset: Desfaz alteracoes
-echo git log: Exibe o historico de commits
-echo =====================================
+set /p escolha_outras="Escolha uma opcao: "
+
+if %escolha_outras%==1 goto restaurar
+if %escolha_outras%==2 goto sincronizar
+if %escolha_outras%==3 goto fetch
+if %escolha_outras%==4 goto merge
+if %escolha_outras%==5 goto init
+if %escolha_outras%==6 goto reset
+if %escolha_outras%==7 goto branch
+if %escolha_outras%==8 goto menu
+goto outras_opcoes
+
+:restaurar
+echo Restaurando arquivos deletados...
+git checkout -- .
 pause
-goto menu
+goto outras_opcoes
+
+:sincronizar
+echo Sincronizando com repositorio...
+git fetch origin
+pause
+goto outras_opcoes
+
+:fetch
+echo Fazendo fetch do repositorio...
+git fetch
+pause
+goto outras_opcoes
+
+:merge
+echo Fazendo merge de branches...
+git merge
+pause
+goto outras_opcoes
+
+:init
+echo Inicializando um novo repositorio...
+git init
+pause
+goto outras_opcoes
+
+:reset
+echo Desfazendo alteracoes...
+git reset
+pause
+goto outras_opcoes
+
+:branch
+echo Listando branches...
+git branch
+pause
+goto outras_opcoes
 
 :fim
 echo Saindo...
