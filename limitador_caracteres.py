@@ -152,10 +152,11 @@ class LimitadorCaracteresApp:
 
         janela_presets = tk.Toplevel(self.root)
         janela_presets.title("Salvar Preset")
-        janela_presets.geometry("300x300")
+        janela_presets.geometry("400x500")
         janela_presets.transient(self.root)
         janela_presets.grab_set()
 
+        label_presets = ttk.Label(janela_presets, text="Selecione um preset ou insira um novo nome:")
         label_presets = ttk.Label(janela_presets, text="Selecione um preset ou insira um novo nome:")
         label_presets.pack(pady=5)
 
@@ -170,13 +171,18 @@ class LimitadorCaracteresApp:
         entry_preset_name = ttk.Entry(janela_presets, width=30)
         entry_preset_name.pack(pady=5)
 
-
         def salvar():
             preset_name = entry_preset_name.get().strip()
             if not preset_name:
                 preset_name = lista_presets.get(tk.ACTIVE)
 
             if preset_name:
+                preset_path = f"presets/{preset_name}.json"
+                if os.path.exists(preset_path):
+                    resposta = messagebox.askyesno("Confirmar Salvar", "Tem certeza que deseja salvar este preset? Isso substituirá o existente.")
+                    if not resposta:
+                        return
+
                 preset_data = {
                     "texto_antes": texto_antes,
                     "texto_depois": texto_depois,
@@ -184,7 +190,7 @@ class LimitadorCaracteresApp:
                 }
                 if not os.path.exists("presets"):
                     os.makedirs("presets")
-                with open(f"presets/{preset_name}.json", "w") as f:
+                with open(preset_path, "w") as f:
                     json.dump(preset_data, f)
                 janela_presets.destroy()
             else:
@@ -200,7 +206,7 @@ class LimitadorCaracteresApp:
         # Criar uma janela para mostrar a lista de presets
         janela_presets = tk.Toplevel(self.root)
         janela_presets.title("Carregar Preset")
-        janela_presets.geometry("300x300")
+        janela_presets.geometry("400x500")
         janela_presets.transient(self.root)
         janela_presets.grab_set()
 
@@ -232,6 +238,10 @@ class LimitadorCaracteresApp:
         def deletar_preset():
             preset_name = lista_presets.get(tk.ACTIVE)
             if preset_name:
+                resposta = messagebox.askyesno("Confirmar Deletar", "Tem certeza que deseja apagar este preset?")
+                if not resposta:
+                    return
+
                 preset_path = f"presets/{preset_name}.json"
                 if os.path.exists(preset_path):
                     os.remove(preset_path)
@@ -258,7 +268,6 @@ class LimitadorCaracteresApp:
         menu.add_command(label="Limpar", command=lambda: widget.delete(1.0, tk.END))
 
         widget.bind("<Button-3>", lambda event: menu.tk_popup(event.x_root, event.y_root))
-
     # Funções para copiar, colar, selecionar tudo e limpar
     def copiar(self, widget):
         widget.event_generate("<<Copy>>")
