@@ -7,7 +7,7 @@ class LimitadorCaracteresApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Limitador de Caracteres")
-        self.root.geometry("600x700")
+        self.root.geometry("600x650")
 
         # Variáveis para armazenar os textos antes e depois
         self.texto_antes = ""
@@ -46,11 +46,13 @@ class LimitadorCaracteresApp:
         self.label_contagem_texto = ttk.Label(self.root, text="Caracteres: 0")
         self.label_contagem_texto.pack(pady=5)
 
-        # Botão "Configurar Textos"
-        ttk.Button(self.root, text="Configurar Textos", command=self.configurar_textos).pack(pady=10)
+        # Botão "Configurar Textos" e "Processar"
+        frame_botoes = ttk.Frame(self.root)
+        frame_botoes.pack(pady=10)
 
-        # Botão "Processar"
-        ttk.Button(self.root, text="Processar", command=self.processar_texto).pack(pady=10)
+        ttk.Button(frame_botoes, text="Configurar Textos", command=self.configurar_textos).pack(side=tk.LEFT, padx=5)
+        ttk.Button(frame_botoes, text="Processar", command=self.processar_texto).pack(side=tk.LEFT, padx=5)
+
 
         # Rótulo e campo para mostrar o texto processado com barra de rolagem
         label_resultado = ttk.Label(self.root, text="Texto processado:")
@@ -143,7 +145,7 @@ class LimitadorCaracteresApp:
 
         # Centralizar a janela
         largura_janela = 400
-        altura_janela = 500
+        altura_janela = 400
         x = self.root.winfo_x() + (self.root.winfo_width() // 2) - (largura_janela // 2)
         y = self.root.winfo_y() + (self.root.winfo_height() // 2) - (altura_janela // 2)
         janela_config.geometry(f"{largura_janela}x{altura_janela}+{x}+{y}")
