@@ -141,6 +141,13 @@ class LimitadorCaracteresApp:
         janela_config.transient(self.root)
         janela_config.grab_set()
 
+        # Centralizar a janela
+        largura_janela = 400
+        altura_janela = 500
+        x = self.root.winfo_x() + (self.root.winfo_width() // 2) - (largura_janela // 2)
+        y = self.root.winfo_y() + (self.root.winfo_height() // 2) - (altura_janela // 2)
+        janela_config.geometry(f"{largura_janela}x{altura_janela}+{x}+{y}")
+
         label_antes = ttk.Label(janela_config, text="Texto antes:")
         label_antes.pack(pady=5)
         entry_antes = tk.Text(janela_config, height=5, width=50)
@@ -184,7 +191,13 @@ class LimitadorCaracteresApp:
         janela_presets.transient(self.root)
         janela_presets.grab_set()
 
-        label_presets = ttk.Label(janela_presets, text="Selecione um preset ou insira um novo nome:")
+        # Centralizar a janela
+        largura_janela = 300
+        altura_janela = 300
+        x = self.root.winfo_x() + (self.root.winfo_width() // 2) - (largura_janela // 2)
+        y = self.root.winfo_y() + (self.root.winfo_height() // 2) - (altura_janela // 2)
+        janela_presets.geometry(f"{largura_janela}x{altura_janela}+{x}+{y}")
+
         label_presets = ttk.Label(janela_presets, text="Selecione um preset ou insira um novo nome:")
         label_presets.pack(pady=5)
 
@@ -238,6 +251,13 @@ class LimitadorCaracteresApp:
         janela_presets.transient(self.root)
         janela_presets.grab_set()
 
+        # Centralizar a janela
+        largura_janela = 300
+        altura_janela = 300
+        x = self.root.winfo_x() + (self.root.winfo_width() // 2) - (largura_janela // 2)
+        y = self.root.winfo_y() + (self.root.winfo_height() // 2) - (altura_janela // 2)
+        janela_presets.geometry(f"{largura_janela}x{altura_janela}+{x}+{y}")
+
         label_presets = ttk.Label(janela_presets, text="Selecione um preset:")
         label_presets.pack(pady=5)
 
@@ -281,6 +301,7 @@ class LimitadorCaracteresApp:
 
         botao_deletar = ttk.Button(janela_presets, text="Deletar", command=deletar_preset)
         botao_deletar.pack(pady=10)
+
 
     # Função para adicionar menu de contexto
     def add_context_menu(self, widget):
