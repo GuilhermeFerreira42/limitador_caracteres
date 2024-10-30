@@ -7,7 +7,7 @@ class LimitadorCaracteresApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Limitador de Caracteres")
-        self.root.geometry("600x650")
+        self.root.geometry("600x700")
 
         # Variáveis para armazenar os textos antes e depois
         self.texto_antes = ""
@@ -42,6 +42,10 @@ class LimitadorCaracteresApp:
         ttk.Button(frame_botoes_texto, text="Selecionar Tudo", command=lambda: self.selecionar_tudo(self.entry_texto)).grid(row=0, column=2, padx=5)
         ttk.Button(frame_botoes_texto, text="Limpar", command=lambda: self.limpar(self.entry_texto)).grid(row=0, column=3, padx=5)
 
+        # Adiciona Label para contagem de caracteres
+        self.label_contagem_texto = ttk.Label(self.root, text="Caracteres: 0")
+        self.label_contagem_texto.pack(pady=5)
+
         # Botão "Configurar Textos"
         ttk.Button(self.root, text="Configurar Textos", command=self.configurar_textos).pack(pady=10)
 
@@ -69,6 +73,30 @@ class LimitadorCaracteresApp:
         ttk.Button(frame_botoes_resultado, text="Colar", command=lambda: self.colar(self.entry_resultado)).grid(row=0, column=1, padx=5)
         ttk.Button(frame_botoes_resultado, text="Selecionar Tudo", command=lambda: self.selecionar_tudo(self.entry_resultado)).grid(row=0, column=2, padx=5)
         ttk.Button(frame_botoes_resultado, text="Limpar", command=lambda: self.limpar(self.entry_resultado)).grid(row=0, column=3, padx=5)
+
+        # Adiciona Label para contagem de caracteres no resultado
+        self.label_contagem_resultado = ttk.Label(self.root, text="Caracteres: 0")
+        self.label_contagem_resultado.pack(pady=5)
+
+        # Bind para atualizar contagem de caracteres
+        self.entry_texto.bind("<<Modified>>", self.atualizar_contagem_texto)
+        self.entry_resultado.bind("<<Modified>>", self.atualizar_contagem_resultado)
+
+    # Função para contar os caracteres do resto
+    def atualizar_contagem_texto(self, evento):
+        # Desmarcar o estado de modificação para que o evento seja chamado novamente
+        self.entry_texto.edit_modified(False)
+        
+        texto = self.entry_texto.get("1.0", tk.END)
+        self.label_contagem_texto.config(text=f"Caracteres: {len(texto.strip())}")
+
+    def atualizar_contagem_resultado(self, evento):
+        # Desmarcar o estado de modificação para que o evento seja chamado novamente
+        self.entry_resultado.edit_modified(False)
+        
+        texto = self.entry_resultado.get("1.0", tk.END)
+        self.label_contagem_resultado.config(text=f"Caracteres: {len(texto.strip())}")
+
 
     # Função para processar o texto
     def processar_texto(self):
