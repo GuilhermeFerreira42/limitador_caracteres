@@ -28,13 +28,15 @@ class LimitadorCaracteresApp(wx.Frame):
         # Área de texto de entrada
         texto_label = wx.StaticText(panel, label="Insira o texto:")
         self.entry_texto = wx.stc.StyledTextCtrl(panel, size=(580, 150))
+        self.entry_texto.SetWrapMode(wx.stc.STC_WRAP_WORD)
         self.entry_texto.SetMarginWidth(1, 0)  # Remove margem de números de linha
-        
+
         # Área de texto de resultado
         resultado_label = wx.StaticText(panel, label="Texto processado:")
         self.entry_resultado = wx.stc.StyledTextCtrl(panel, size=(580, 150))
+        self.entry_resultado.SetWrapMode(wx.stc.STC_WRAP_WORD)
         self.entry_resultado.SetMarginWidth(1, 0)
-        
+                
         # Botões principais
         botoes_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.btn_config = wx.Button(panel, label="Configurar Textos")
