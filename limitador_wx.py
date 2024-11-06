@@ -97,9 +97,12 @@ class LimitadorCaracteresApp(wx.Frame):
         label_depois = wx.StaticText(dialog, label="Texto depois:")
         entry_depois = wx.stc.StyledTextCtrl(dialog, size=(380, 100))
         entry_depois.SetText(self.texto_depois)
+
+        entry_antes.SetWrapMode(wx.stc.STC_WRAP_WORD)  # Quebra de linha por palavra
+        entry_depois.SetWrapMode(wx.stc.STC_WRAP_WORD)  # Quebra de linha por palavra
         
         # Checkbox para pular espaços
-        check_espacos = wx.CheckBox(dialog, label="Pular espaços")
+        check_espacos = wx.CheckBox(dialog, label="Processa Recursivamente")
         check_espacos.SetValue(self.pular_espacos)
         
         # Botões de preset
@@ -177,22 +180,45 @@ class LimitadorCaracteresApp(wx.Frame):
     def salvar_preset(self, texto_antes, texto_depois):
         if not os.path.exists("presets"):
             os.makedirs("presets")
+
+        # Criar a janela de presets com o mesmo tamanho que a de carregar
+        janela_presets = wx.Dialog(self, title="Salvar Preset", size=(300, 400))
         
-        # Criar diálogo para nome do preset
-        dialog = wx.TextEntryDialog(self, "Nome do preset:", "Salvar Preset")
-        
-        if dialog.ShowModal() == wx.ID_OK:
-            preset_name = dialog.GetValue()
+        # Centralizar a janela
+        x = self.GetPosition().x + (self.GetSize().width // 2) - (janela_presets.GetSize().width // 2)
+        y = self.GetPosition().y + (self.GetSize().height // 2) - (janela_presets.GetSize().height // 2)
+        janela_presets.SetPosition((x, y))
+
+        # Layout
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        label_presets = wx.StaticText(janela_presets, label="Selecione um preset ou insira um novo nome:")
+        sizer.Add(label_presets, 0, wx.ALL | wx.CENTER, 5)
+
+        lista_presets = wx.ListBox(janela_presets)
+        sizer.Add(lista_presets, 1, wx.ALL | wx.EXPAND, 5)
+
+        # Carregar os nomes dos presets na listbox
+        for filename in os.listdir("presets"):
+            if filename.endswith(".json"):
+                lista_presets.Append(filename[:-5])
+
+        entry_preset_name = wx.TextCtrl(janela_presets, size=(300, -1))
+        sizer.Add(entry_preset_name, 0, wx.ALL | wx.CENTER, 5)
+
+        def salvar(event):
+            preset_name = entry_preset_name.GetValue().strip()
+            if not preset_name:
+                preset_name = lista_presets.GetString(lista_presets.GetSelection())
+
             if preset_name:
                 preset_path = f"presets/{preset_name}.json"
-                
-                # Confirmar sobrescrita se já existir
                 if os.path.exists(preset_path):
-                    if wx.MessageBox("Preset já existe. Sobrescrever?", "Confirmar",
-                                   wx.YES_NO | wx.NO_DEFAULT) != wx.YES:
+                    resposta = wx.MessageBox("Tem certeza que deseja salvar este preset? Isso substituirá o existente.", 
+                                            "Confirmar Salvar", wx.YES_NO | wx.NO_DEFAULT)
+                    if resposta != wx.YES:
                         return
-                
-                # Salvar preset
+
                 preset_data = {
                     "texto_antes": texto_antes,
                     "texto_depois": texto_depois,
@@ -200,38 +226,64 @@ class LimitadorCaracteresApp(wx.Frame):
                 }
                 with open(preset_path, "w") as f:
                     json.dump(preset_data, f)
-        
-        dialog.Destroy()
+                janela_presets.Destroy()
+            else:
+                wx.MessageBox("Por favor, selecione ou insira um nome para o preset.", "Erro", wx.OK | wx.ICON_ERROR)
+
+        # Criar um sizer horizontal para os botões
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        # Botão Salvar
+        botao_salvar = wx.Button(janela_presets, label="Salvar")
+        botao_salvar.Bind(wx.EVT_BUTTON, salvar)
+        btn_sizer.Add(botao_salvar, 0, wx.ALL | wx.CENTER, 5)
+
+        # Botão Cancelar
+        botao_cancelar = wx.Button(janela_presets, label="Cancelar")
+        botao_cancelar.Bind(wx.EVT_BUTTON, lambda event: janela_presets.Destroy())
+        btn_sizer.Add(botao_cancelar, 0, wx.ALL | wx.CENTER, 5)
+
+        # Adicionar o sizer de botões ao sizer principal
+        sizer.Add(btn_sizer, 0, wx.CENTER | wx.ALL, 10)
+
+        janela_presets.SetSizer(sizer)
+        janela_presets.ShowModal()
+        janela_presets.Destroy()
 
     def mostrar_presets(self, entry_antes, entry_depois):
         if not os.path.exists("presets"):
             wx.MessageBox("Nenhum preset encontrado.", "Aviso", wx.OK | wx.ICON_INFORMATION)
             return
         
-        # Criar diálogo com lista de presets
         dialog = wx.Dialog(self, title="Carregar Preset", size=(300, 400))
+        
+        # Centraliza a janela
+        x = self.GetPosition().x + (self.GetSize().width // 2) - (dialog.GetSize().width // 2)
+        y = self.GetPosition().y + (self.GetSize().height // 2) - (dialog.GetSize().height // 2)
+        dialog.SetPosition((x, y))
+
         dialog_sizer = wx.BoxSizer(wx.VERTICAL)
         
-        # Lista de presets
         list_presets = wx.ListBox(dialog, size=(280, 200))
         for filename in os.listdir("presets"):
             if filename.endswith(".json"):
                 list_presets.Append(filename[:-5])
         
-        # Botões
+        # Cria o sizer horizontal para os botões
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         btn_carregar = wx.Button(dialog, label="Carregar")
         btn_deletar = wx.Button(dialog, label="Deletar")
+        btn_cancelar = wx.Button(dialog, label="Cancelar")  # Novo botão de cancelar
         btn_sizer.Add(btn_carregar, 0, wx.ALL, 5)
         btn_sizer.Add(btn_deletar, 0, wx.ALL, 5)
-        
+        btn_sizer.Add(btn_cancelar, 0, wx.ALL, 5)  # Adiciona o botão de cancelar ao sizer
+
         dialog_sizer.Add(list_presets, 1, wx.EXPAND | wx.ALL, 5)
         dialog_sizer.Add(btn_sizer, 0, wx.CENTER | wx.ALL, 5)
         
         dialog.SetSizer(dialog_sizer)
-        
-        # Funções para os botões
-        def carregar_preset():
+
+        def carregar_preset(event):
             if list_presets.GetSelection() != wx.NOT_FOUND:
                 preset_name = list_presets.GetString(list_presets.GetSelection())
                 preset_path = f"presets/{preset_name}.json"
@@ -242,21 +294,27 @@ class LimitadorCaracteresApp(wx.Frame):
                 self.pular_espacos = preset_data["pular_espacos"]
                 dialog.Destroy()
 
-        def deletar_preset():
+        def deletar_preset(event):
             if list_presets.GetSelection() != wx.NOT_FOUND:
                 preset_name = list_presets.GetString(list_presets.GetSelection())
                 preset_path = f"presets/{preset_name}.json"
-                if wx.MessageBox(f"Tem certeza que deseja deletar o preset '{preset_name}'?", "Confirmar", wx.YES_NO | wx.NO_DEFAULT) == wx.YES:
+                if wx.MessageBox(f"Tem certeza que deseja deletar o preset '{preset_name}'?", "Confirmar", wx .YES_NO | wx.NO_DEFAULT) == wx.YES:
                     os.remove(preset_path)
                     list_presets.Delete(list_presets.GetSelection())
                     wx.MessageBox("Preset deletado com sucesso!", "Sucesso", wx.OK | wx.ICON_INFORMATION)
 
-        btn_carregar.Bind(wx.EVT_BUTTON, lambda event: carregar_preset())
-        btn_deletar.Bind(wx.EVT_BUTTON, lambda event: deletar_preset())
+        # Função para o botão de cancelar
+        def cancelar(event):
+            dialog.Destroy()  # Fecha a janela de diálogo
+
+        # Vincula os eventos dos botões
+        btn_carregar.Bind(wx.EVT_BUTTON, carregar_preset)
+        btn_deletar.Bind(wx.EVT_BUTTON, deletar_preset)
+        btn_cancelar.Bind(wx.EVT_BUTTON, cancelar)  # Vincula o evento do botão de cancelar
 
         dialog.ShowModal()
         dialog.Destroy()
-
+        
 if __name__ == "__main__":
     app = wx.App(False)
     frame = LimitadorCaracteresApp()
