@@ -7,12 +7,17 @@ class LimitadorCaracteresApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Limitador de Caracteres")
-        self.root.geometry("600x650")
+        self.root.geometry("600x700")
 
         # Variáveis para armazenar os textos antes e depois
         self.texto_antes = ""
         self.texto_depois = ""
         self.pular_espacos = tk.BooleanVar()
+        
+        # Variáveis para controle de blocos
+        self.bloco_atual = 0
+        self.tamanho_bloco = 0
+        self.blocos = []
 
         # Rótulo e campo para informar a quantidade de caracteres
         label_remover = ttk.Label(self.root, text="Quantidade de caracteres:")
@@ -52,7 +57,8 @@ class LimitadorCaracteresApp:
 
         ttk.Button(frame_botoes, text="Configurar Textos", command=self.configurar_textos).pack(side=tk.LEFT, padx=5)
         ttk.Button(frame_botoes, text="Processar", command=self.processar_texto).pack(side=tk.LEFT, padx=5)
-
+        ttk.Button(frame_botoes, text="Anterior", command=self.anterior).pack(side=tk.LEFT, padx=5)
+        ttk.Button(frame_botoes, text="Próximo", command=self.proximo).pack(side=tk.LEFT, padx=5)
 
         # Rótulo e campo para mostrar o texto processado com barra de rolagem
         label_resultado = ttk.Label(self.root, text="Texto processado:")
@@ -80,6 +86,10 @@ class LimitadorCaracteresApp:
         self.label_contagem_resultado = ttk.Label(self.root, text="Caracteres: 0")
         self.label_contagem_resultado.pack(pady=5)
 
+        # Adiciona Label para mostrar o visor de bloco atual
+        self.label_visor_bloco = ttk.Label(self.root, text="", font=("Arial", 12))
+        self.label_visor_bloco.pack(pady=5)
+
         # Bind para atualizar contagem de caracteres
         self.entry_texto.bind("<<Modified>>", self.atualizar_contagem_texto)
         self.entry_resultado.bind("<<Modified>>", self.atualizar_contagem_resultado)
@@ -103,37 +113,44 @@ class LimitadorCaracteresApp:
     # Função para processar o texto
     def processar_texto(self):
         try:
-            limite_caracteres = int(self.entry_remover.get())
+            self.tamanho_bloco = int(self.entry_remover.get())
             texto = self.entry_texto.get("1.0", tk.END).strip()
-            # Considera os textos "antes" e "depois", mantendo suas quebras de linha
-            texto_antes = self.texto_antes.rstrip('\n')
-            texto_depois = self.texto_depois.lstrip('\n')
-            # Calcular quantos caracteres podem ser utilizados para o texto principal
-            caracteres_antes = len(texto_antes.replace("\n", ""))
-            caracteres_depois = len(texto_depois.replace("\n", ""))
-            caracteres_disponiveis = limite_caracteres - (caracteres_antes + caracteres_depois)
-
-            # Variável para armazenar o resultado final
-            resultado_final = ""
-            if self.pular_espacos.get():
-                # Ignora espaços em excesso, mas mantém um espaço simples entre palavras
-                i = 0
-                while i < len(texto):
-                    texto_temp = ""
-                    while len(texto_temp) < caracteres_disponiveis and i < len(texto):
-                        if texto[i] != ' ' or (texto_temp and texto_temp[-1] != ' '):
-                            texto_temp += texto[i]
-                        i += 1
-                    resultado_final += texto_antes + texto_temp + texto_depois + "\n"
-            else:
-                texto_processado = texto[:caracteres_disponiveis]
-                resultado_final = texto_antes + texto_processado + texto_depois
-
-            self.entry_resultado.delete("1.0", tk.END)
-            self.entry_resultado.insert(tk.END, resultado_final)
+            self.blocos = []
+            inicio = 0
+            while inicio < len(texto):
+                fim = inicio + self.tamanho_bloco
+                if fim > len(texto):
+                    fim = len(texto)
+                self.blocos.append(texto[inicio:fim])
+                inicio = fim
+            self.bloco_atual = 0
+            self.exibir_bloco()
         except ValueError:
             self.entry_resultado.delete("1.0", tk.END)
             self.entry_resultado.insert(tk.END, "Por favor, insira um número válido.")
+
+    def exibir_bloco(self):
+        if self.bloco_atual < len(self.blocos):
+            texto_antes = self.texto_antes.rstrip('\n')
+            texto_depois = self.texto_depois.lstrip('\n')
+            resultado = texto_antes + self.blocos[self.bloco_atual] + texto_depois
+            self.entry_resultado.delete("1.0", tk.END)
+            self.entry_resultado.insert(tk.END, resultado)
+            self.label_visor_bloco.config(text=f"{self.bloco_atual + 1}/{len(self.blocos)}")
+        else:
+            self.entry_resultado.delete("1.0", tk.END)
+            self.entry_resultado.insert(tk.END, "Não há mais blocos.")
+            self.label_visor_bloco.config(text="")
+
+    def anterior(self):
+        if self.bloco_atual > 0:
+            self.bloco_atual -= 1
+            self.exibir_bloco()
+
+    def proximo(self):
+        if self.bloco_atual < len(self.blocos) - 1:
+            self.bloco_atual += 1
+            self.exibir_bloco()
 
     # Função para configurar os textos antes e depois
     def configurar_textos(self):
